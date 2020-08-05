@@ -27,6 +27,10 @@
 
 #if defined(_GLFW_USE_EGLPLATFORM_H)
  #include <EGL/eglplatform.h>
+#elif defined(_GLFW_ANDROID)
+ #define EGLAPIENTRY
+ typedef void*                           EGLNativeDisplayType;
+ typedef struct ANativeWindow*           EGLNativeWindowType;
 #elif defined(_GLFW_WIN32)
  #define EGLAPIENTRY __stdcall
 typedef HDC EGLNativeDisplayType;

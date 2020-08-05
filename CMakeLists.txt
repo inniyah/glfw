@@ -148,6 +148,9 @@ elseif (WIN32)
 elseif (APPLE)
     set(_GLFW_COCOA 1)
     message(STATUS "Using Cocoa for window creation")
+elseif (ANDROID)
+    set(_GLFW_ANDROID 1)
+    message(STATUS "Using Android for window creation")
 elseif (UNIX)
     set(_GLFW_X11 1)
     message(STATUS "Using X11 for window creation")
@@ -296,6 +299,13 @@ endif()
 #--------------------------------------------------------------------
 if (GLFW_VULKAN_STATIC)
     list(APPEND glfw_PKG_DEPS "vulkan")
+endif()
+
+#--------------------------------------------------------------------
+# Use Android APIs for window creation
+#--------------------------------------------------------------------
+if (_GLFW_ANDROID)
+    list(APPEND glfw_INCLUDE_DIRS "${ANDROID_NDK}/sources/android/native_app_glue/")
 endif()
 
 #--------------------------------------------------------------------
