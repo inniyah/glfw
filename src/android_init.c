@@ -33,19 +33,24 @@ struct android_app* _globalApp;
 extern int main();
 void handle_cmd(struct android_app* _app, int32_t cmd) {
     switch (cmd) {
-    case APP_CMD_INIT_WINDOW: {
-        break;
+        case APP_CMD_INIT_WINDOW: {
+            break;
+        }
+        case APP_CMD_LOST_FOCUS: {
+            break;
+        }
+        case APP_CMD_GAINED_FOCUS: {
+            break;
+        }
+        case APP_CMD_CONFIG_CHANGED: {
+            __android_log_print(ANDROID_LOG_INFO, "GLFW3", "New orientation: %d", AConfiguration_getOrientation(_globalApp->config));
+            break;
+        }
+        case  APP_CMD_TERM_WINDOW: {
+            _glfwInputWindowCloseRequest(_glfw.windowListHead);
+            break;
+        }
     }
-    case APP_CMD_LOST_FOCUS: {
-        break;
-    }
-    case APP_CMD_GAINED_FOCUS: {
-        break;
-    }
-    case  APP_CMD_TERM_WINDOW: {
-        glfwDestroyWindow((GLFWwindow *) _glfw.windowListHead);
-    }
-}
 }
 
 // Android Entry Point
@@ -53,8 +58,26 @@ void android_main(struct android_app *app) {
     app->onAppCmd = handle_cmd;
     // hmmm...global....eek
     _globalApp = app;
-    main();
+
+    struct android_poll_source* source;
+    do {
+        switch(app->activityState) {
+            case APP_CMD_START:
+            case APP_CMD_RESUME:
+                main();
+                __android_log_print(ANDROID_LOG_INFO, "GLFW3", "main done %d", app->destroyRequested);
+                break;
+        }
+
+        ALooper_pollAll(-1, NULL, NULL,(void**)&source);
+
+        if (source != NULL) {
+            source->process(app, source);
+        }
+    } while (!app->destroyRequested);
+    __android_log_print(ANDROID_LOG_INFO, "GLFW3", "completely done %d", app->destroyRequested);
 }
+
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW platform API                      //////
 //////////////////////////////////////////////////////////////////////////
@@ -62,6 +85,9 @@ void android_main(struct android_app *app) {
 int _glfwPlatformInit(void)
 {
     _glfw.gstate.app = _globalApp;
+    _glfw.gstate.window_created = 0;
+    _glfw.gstate.last_cursor_x = 0;
+    _glfw.gstate.last_cursor_y = 0;
     _glfwInitTimerPOSIX();
     return GLFW_TRUE;
 }

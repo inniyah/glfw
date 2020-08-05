@@ -49,11 +49,12 @@
 #define _GLFW_PLATFORM_LIBRARY_CONTEXT_STATE
 #define _GLFW_EGL_NATIVE_DISPLAY EGL_DEFAULT_DISPLAY
 
-float x,y;
-
 typedef struct android_gstate {
+    int window_created;
     struct android_app* app;
     struct android_poll_source* source;
+    int last_cursor_x;
+    int last_cursor_y;
 } android_gstate;
 
 typedef VkFlags VkAndroidSurfaceCreateFlagsKHR;
