@@ -28,6 +28,12 @@
 #include <android/log.h>
 #include "internal.h"
 
+#define LOGV(...) (__android_log_print(ANDROID_LOG_VERBOSE, "GLFW3", __VA_ARGS__))
+#define LOGI(...) (__android_log_print(ANDROID_LOG_INFO,    "GLFW3", __VA_ARGS__))
+#define LOGW(...) (__android_log_print(ANDROID_LOG_WARN,    "GLFW3", __VA_ARGS__))
+#define LOGE(...) (__android_log_print(ANDROID_LOG_ERROR,   "GLFW3", __VA_ARGS__))
+#define LOGF(...) (__android_log_print(ANDROID_LOG_FATAL,   "GLFW3", __VA_ARGS__))
+
 struct android_app* _globalApp;
 
 extern int main();
@@ -43,7 +49,7 @@ void handle_cmd(struct android_app* _app, int32_t cmd) {
             break;
         }
         case APP_CMD_CONFIG_CHANGED: {
-            __android_log_print(ANDROID_LOG_INFO, "GLFW3", "New orientation: %d", AConfiguration_getOrientation(_globalApp->config));
+            LOGI("New orientation: %d", AConfiguration_getOrientation(_globalApp->config));
             break;
         }
         case  APP_CMD_TERM_WINDOW: {
@@ -65,7 +71,7 @@ void android_main(struct android_app *app) {
             case APP_CMD_START:
             case APP_CMD_RESUME:
                 main();
-                __android_log_print(ANDROID_LOG_INFO, "GLFW3", "main done %d", app->destroyRequested);
+                LOGI("main done %d", app->destroyRequested);
                 break;
         }
 
@@ -75,7 +81,7 @@ void android_main(struct android_app *app) {
             source->process(app, source);
         }
     } while (!app->destroyRequested);
-    __android_log_print(ANDROID_LOG_INFO, "GLFW3", "completely done %d", app->destroyRequested);
+    LOGI("completely done %d", app->destroyRequested);
 }
 
 //////////////////////////////////////////////////////////////////////////

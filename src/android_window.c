@@ -29,14 +29,22 @@
 #include <android/log.h>
 #include <string.h>
 
+#define LOGV(...) (__android_log_print(ANDROID_LOG_VERBOSE, "GLFW3", __VA_ARGS__))
+#define LOGI(...) (__android_log_print(ANDROID_LOG_INFO,    "GLFW3", __VA_ARGS__))
+#define LOGW(...) (__android_log_print(ANDROID_LOG_WARN,    "GLFW3", __VA_ARGS__))
+#define LOGE(...) (__android_log_print(ANDROID_LOG_ERROR,   "GLFW3", __VA_ARGS__))
+#define LOGF(...) (__android_log_print(ANDROID_LOG_FATAL,   "GLFW3", __VA_ARGS__))
+
 static int32_t handle_input(struct android_app* app, AInputEvent* event)
 {
     int32_t ev_type = AInputEvent_getType(event);
     if (AINPUT_EVENT_TYPE_MOTION == ev_type) {
-        float x,y;
+        float x, y;
+        int p = -1;
         for (size_t i = 0; i < AMotionEvent_getPointerCount(event); ++i) {
             x = AMotionEvent_getX(event, i);
             y = AMotionEvent_getY(event, i);
+            p = i;
         }
 
         _glfwInputCursorPos(_glfw.windowListHead, x, y);
@@ -49,9 +57,11 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event)
                 int action = AKeyEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK;
                 switch(action) {
                     case AMOTION_EVENT_ACTION_UP:
+                        LOGV("Touch Screen Event (Action Up): x = %d (%f), y = %d (%f), p=%d", _glfw.gstate.last_cursor_x, x, _glfw.gstate.last_cursor_y, y, p);
                         _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
                         break;
                     case AMOTION_EVENT_ACTION_DOWN:
+                        LOGV("Touch Screen Event (Action Down): x = %d (%f), y = %d (%f), p=%d", _glfw.gstate.last_cursor_x, x, _glfw.gstate.last_cursor_y, y, p);
                         _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, 0);
                         break;
                 }
@@ -67,7 +77,7 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event)
 }
 
 static void handle_size_change(ANativeActivity* activity, const ARect* rect) {
-    __android_log_print(ANDROID_LOG_INFO, "wurst", "Config changed: l=%d,t=%d,r=%d,b=%d", rect->left, rect->top, rect->right, rect->bottom);
+    LOGI("Config changed: l=%d,t=%d,r=%d,b=%d", rect->left, rect->top, rect->right, rect->bottom);
     if (!_glfw.gstate.window_created) {
         _glfw.gstate.window_created = 1;
     } else {
