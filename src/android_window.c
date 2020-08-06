@@ -49,19 +49,19 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event)
 
         _glfwInputCursorPos(_glfw.windowListHead, x, y);
 
-        _glfw.gstate.last_cursor_x = x;
-        _glfw.gstate.last_cursor_y = y;
+        _glfw.android.last_cursor_x = x;
+        _glfw.android.last_cursor_y = y;
 
         switch(AInputEvent_getSource(event)){
             case AINPUT_SOURCE_TOUCHSCREEN: {
                 int action = AKeyEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK;
                 switch(action) {
                     case AMOTION_EVENT_ACTION_UP:
-                        LOGV("Touch Screen Event (Action Up): x = %d (%f), y = %d (%f), p=%d", _glfw.gstate.last_cursor_x, x, _glfw.gstate.last_cursor_y, y, p);
+                        LOGV("Touch Screen Event (Action Up): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
                         _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
                         break;
                     case AMOTION_EVENT_ACTION_DOWN:
-                        LOGV("Touch Screen Event (Action Down): x = %d (%f), y = %d (%f), p=%d", _glfw.gstate.last_cursor_x, x, _glfw.gstate.last_cursor_y, y, p);
+                        LOGV("Touch Screen Event (Action Down): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
                         _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, 0);
                         break;
                 }
@@ -78,18 +78,18 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event)
 
 static void handle_size_change(ANativeActivity* activity, const ARect* rect) {
     LOGI("Config changed: l=%d,t=%d,r=%d,b=%d", rect->left, rect->top, rect->right, rect->bottom);
-    if (!_glfw.gstate.window_created) {
-        _glfw.gstate.window_created = 1;
+    if (!_glfw.android.window_created) {
+        _glfw.android.window_created = 1;
     } else {
         _glfwInputWindowSize(_glfw.windowListHead, rect->right - rect->left, rect->bottom - rect->top);
     }
 }
 
 static void handleEvents(int timeout) {
-    ALooper_pollAll(timeout, NULL, NULL,(void**)&_glfw.gstate.source);
+    ALooper_pollAll(timeout, NULL, NULL,(void**)&_glfw.android.source);
 
-    if (_glfw.gstate.source != NULL) {
-        _glfw.gstate.source->process(_glfw.gstate.app, _glfw.gstate.source);
+    if (_glfw.android.source != NULL) {
+        _glfw.android.source->process(_glfw.android.app, _glfw.android.source);
     }
 }
 
@@ -103,11 +103,11 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
                               const _GLFWfbconfig* fbconfig)
 {
     // wait for window to become ready
-    while (_glfw.gstate.app->window == NULL) {
+    while (_glfw.android.app->window == NULL) {
         handleEvents(-1);
     }
     // hmmm maybe should be ANative_Window only?
-    window->android = _glfw.gstate.app;
+    window->android = _glfw.android.app;
     window->android->onInputEvent = handle_input;
     window->android->activity->callbacks->onContentRectChanged = handle_size_change;
 
@@ -324,8 +324,8 @@ void _glfwPlatformPostEmptyEvent(void)
 
 void _glfwPlatformGetCursorPos(_GLFWwindow* window, double* xpos, double* ypos)
 {
-    *xpos = (double) _glfw.gstate.last_cursor_x;
-    *ypos = (double) _glfw.gstate.last_cursor_y;
+    *xpos = (double) _glfw.android.last_cursor_x;
+    *ypos = (double) _glfw.android.last_cursor_y;
 }
 
 void _glfwPlatformSetCursorPos(_GLFWwindow* window, double x, double y)

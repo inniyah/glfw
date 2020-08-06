@@ -41,7 +41,7 @@
 
 #define _GLFW_EGL_NATIVE_WINDOW  ((EGLNativeWindowType) window->android->window)
 #define _GLFW_PLATFORM_WINDOW_STATE         struct android_app* android;
-#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE android_gstate gstate;
+#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE android_gstate android;
 #define _GLFW_PLATFORM_MONITOR_STATE
 #define _GLFW_PLATFORM_CURSOR_STATE
 
@@ -49,12 +49,39 @@
 #define _GLFW_PLATFORM_LIBRARY_CONTEXT_STATE
 #define _GLFW_EGL_NATIVE_DISPLAY EGL_DEFAULT_DISPLAY
 
+// The created flag is set true when we receive the onCreate event (ANativeActivity_onCreate).
+// The created flag is cleared to false when we receive the onDestroy event.
+#define _GLFW_ANDROID_LIFECYCLE_STATE_CREATED (1 << 0)
+
+// The started flag is set true when we receive the onStart event.
+// The started flag is cleared to false when we receive the onStop event.
+#define _GLFW_ANDROID_LIFECYCLE_STATE_STARTED (1 << 1)
+
+// The resumed flag is set true when we receive the onResume event.
+// The resumed flag is cleared to false when we receive the onPause event.
+#define _GLFW_ANDROID_LIFECYCLE_STATE_RESUMED (1 << 2)
+
+// The surface flag is set true when we receive the surfaceCreate event (normally in the resumed state).
+// The surface flag is cleared to false when we receive surfaceDestroyed.
+#define _GLFW_ANDROID_LIFECYCLE_STATE_SURFACE (1 << 3)
+
+// The focus flag is set true when we receive a focus-gained event
+// The focus flag is cleared to false when we receive a focus-lost event
+#define _GLFW_ANDROID_LIFECYCLE_STATE_FOCUSED (1 << 4)
+
+// The App should be run when created + started + resumed + surface + focus flags are set
+#define _GLFW_ANDROID_LIFECYCLE_CHECK (0x1F)
+
 typedef struct android_gstate {
-    int window_created;
+    int lifecycle_state;
+
     struct android_app* app;
     struct android_poll_source* source;
+
+    int window_created;
     int last_cursor_x;
     int last_cursor_y;
+
 } android_gstate;
 
 typedef VkFlags VkAndroidSurfaceCreateFlagsKHR;

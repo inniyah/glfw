@@ -27,6 +27,7 @@
 
 #include <android/log.h>
 #include "internal.h"
+#include <unistd.h>
 
 #define LOGV(...) (__android_log_print(ANDROID_LOG_VERBOSE, "GLFW3", __VA_ARGS__))
 #define LOGI(...) (__android_log_print(ANDROID_LOG_INFO,    "GLFW3", __VA_ARGS__))
@@ -39,40 +40,83 @@ struct android_app* _globalApp;
 extern int main();
 void handle_cmd(struct android_app* _app, int32_t cmd) {
     switch (cmd) {
-        case APP_CMD_INIT_WINDOW: {
+        case APP_CMD_DESTROY: // onDestroy
+            _glfw.android.lifecycle_state &= ~_GLFW_ANDROID_LIFECYCLE_STATE_CREATED;
+            LOGV("[App Destroyed]");
+            break;
+
+        case APP_CMD_START: // onStart
+            LOGV("[App Started]");
+            _glfw.android.lifecycle_state |= _GLFW_ANDROID_LIFECYCLE_STATE_STARTED;
+            break;
+        case APP_CMD_STOP: // onStop
+            _glfw.android.lifecycle_state &= ~_GLFW_ANDROID_LIFECYCLE_STATE_STARTED;
+            LOGV("[App Stopped]");
+            break;
+
+        case APP_CMD_RESUME: // onResume
+            LOGV("[App Resumed]");
+            _glfw.android.lifecycle_state |= _GLFW_ANDROID_LIFECYCLE_STATE_RESUMED;
+            break;
+        case APP_CMD_PAUSE: // onPause
+            LOGV("[App Paused]");
+            _glfw.android.lifecycle_state &= ~_GLFW_ANDROID_LIFECYCLE_STATE_RESUMED;
+            break;
+
+        case APP_CMD_GAINED_FOCUS: { // onWindowFocusChanged
+            LOGV("[Window Gained Focus]");
+            _glfw.android.lifecycle_state |= _GLFW_ANDROID_LIFECYCLE_STATE_FOCUSED;
             break;
         }
-        case APP_CMD_LOST_FOCUS: {
+        case APP_CMD_LOST_FOCUS: { // onWindowFocusChanged
+            LOGV("[Window Lost Focus]");
+            _glfw.android.lifecycle_state &= ~_GLFW_ANDROID_LIFECYCLE_STATE_FOCUSED;
             break;
         }
-        case APP_CMD_GAINED_FOCUS: {
+
+        case APP_CMD_INIT_WINDOW: { // onNativeWindowCreated (surfaceCreated)
+            _glfw.android.lifecycle_state |= _GLFW_ANDROID_LIFECYCLE_STATE_SURFACE;
+            LOGV("[Surface Created]");
             break;
         }
-        case APP_CMD_CONFIG_CHANGED: {
-            LOGI("New orientation: %d", AConfiguration_getOrientation(_globalApp->config));
+        case APP_CMD_WINDOW_RESIZED: { // onNativeWindowResized (surfaceChanged)
+            LOGV("[Surface Resized]");
             break;
         }
-        case  APP_CMD_TERM_WINDOW: {
+        case APP_CMD_TERM_WINDOW: { // onNativeWindowDestroyed (surfaceDestroyed)
+            LOGV("[Surface Destroyed]");
+            _glfw.android.lifecycle_state &= ~_GLFW_ANDROID_LIFECYCLE_STATE_SURFACE;
             _glfwInputWindowCloseRequest(_glfw.windowListHead);
             break;
         }
+
+        case APP_CMD_CONFIG_CHANGED: { // onConfigurationChanged
+            LOGV("[Configuration Changed] New orientation: %d", AConfiguration_getOrientation(_globalApp->config));
+            break;
+        }
+
+
     }
 }
 
 // Android Entry Point
-void android_main(struct android_app *app) {
+void android_main(struct android_app *app) { // ANativeActivity_onCreate (onCreate)
+    LOGV("[App Created]");
+    _glfw.android.lifecycle_state |= _GLFW_ANDROID_LIFECYCLE_STATE_CREATED;
+
     app->onAppCmd = handle_cmd;
+
     // hmmm...global....eek
     _globalApp = app;
 
     struct android_poll_source* source;
     do {
-        switch(app->activityState) {
-            case APP_CMD_START:
-            case APP_CMD_RESUME:
-                main();
-                LOGI("main done %d", app->destroyRequested);
-                break;
+        if ((_glfw.android.lifecycle_state & _GLFW_ANDROID_LIFECYCLE_CHECK) == _GLFW_ANDROID_LIFECYCLE_CHECK) {
+            LOGV("[Starting Main]");
+            main();
+            LOGV("[Main Finished] destroyRequested: %d", app->destroyRequested);
+        } else {
+            usleep(10);
         }
 
         ALooper_pollAll(-1, NULL, NULL,(void**)&source);
@@ -80,30 +124,31 @@ void android_main(struct android_app *app) {
         if (source != NULL) {
             source->process(app, source);
         }
-    } while (!app->destroyRequested);
-    LOGI("completely done %d", app->destroyRequested);
+    } while (!app->destroyRequested); // Continue with the event loop until android_app->destroyRequested
+
+    LOGV("[Completely Done] destroyRequested: %d", app->destroyRequested);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-int _glfwPlatformInit(void)
-{
-    _glfw.gstate.app = _globalApp;
-    _glfw.gstate.window_created = 0;
-    _glfw.gstate.last_cursor_x = 0;
-    _glfw.gstate.last_cursor_y = 0;
+int _glfwPlatformInit(void) {
+    _glfw.android.lifecycle_state = 0;
+    _glfw.android.app = _globalApp;
+    _glfw.android.source = 0;
+    _glfw.android.window_created = 0;
+    _glfw.android.last_cursor_x = 0;
+    _glfw.android.last_cursor_y = 0;
+
     _glfwInitTimerPOSIX();
     return GLFW_TRUE;
 }
 
-void _glfwPlatformTerminate(void)
-{
+void _glfwPlatformTerminate(void) {
     _glfwTerminateOSMesa();
 }
 
-const char* _glfwPlatformGetVersionString(void)
-{
+const char* _glfwPlatformGetVersionString(void) {
     return _GLFW_VERSION_NUMBER " Android EGL";
 }
