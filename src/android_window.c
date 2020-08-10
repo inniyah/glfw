@@ -56,13 +56,47 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event)
             case AINPUT_SOURCE_TOUCHSCREEN: {
                 int action = AKeyEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK;
                 switch(action) {
+                    case AMOTION_EVENT_ACTION_DOWN:
+                        LOGV("Touch Screen Event (Action Down): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, 0);
+                        break;
                     case AMOTION_EVENT_ACTION_UP:
                         LOGV("Touch Screen Event (Action Up): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
                         _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
                         break;
-                    case AMOTION_EVENT_ACTION_DOWN:
-                        LOGV("Touch Screen Event (Action Down): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
-                        _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, 0);
+                    case AMOTION_EVENT_ACTION_MOVE:
+                        LOGV("Touch Screen Event (Action Move): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_REPEAT, 0);
+                        break;
+                    case AMOTION_EVENT_ACTION_CANCEL:
+                        LOGV("Touch Screen Event (Action Cancel): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_OUTSIDE:
+                        LOGV("Touch Screen Event (Action Outside): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_POINTER_DOWN:
+                        LOGV("Touch Screen Event (Action Pointer Down): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_POINTER_UP:
+                        LOGV("Touch Screen Event (Action Pointer Up): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_HOVER_MOVE:
+                        LOGV("Touch Screen Event (Action Hover Move): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_SCROLL:
+                        LOGV("Touch Screen Event (Action Scroll): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_HOVER_ENTER:
+                        LOGV("Touch Screen Event (Action Hover Enter): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_HOVER_EXIT:
+                        LOGV("Touch Screen Event (Action Hover Exit): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_BUTTON_PRESS:
+                        LOGV("Touch Screen Event (Action Button Press): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
+                        break;
+                    case AMOTION_EVENT_ACTION_BUTTON_RELEASE:
+                        LOGV("Touch Screen Event (Action Button Release): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
                         break;
                 }
                 break;
