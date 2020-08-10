@@ -66,7 +66,6 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event)
                         break;
                     case AMOTION_EVENT_ACTION_MOVE:
                         LOGV("Touch Screen Event (Action Move): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
-                        _glfwInputMouseClick(_glfw.windowListHead, GLFW_MOUSE_BUTTON_LEFT, GLFW_REPEAT, 0);
                         break;
                     case AMOTION_EVENT_ACTION_CANCEL:
                         LOGV("Touch Screen Event (Action Cancel): x = %d (%f), y = %d (%f), p=%d", _glfw.android.last_cursor_x, x, _glfw.android.last_cursor_y, y, p);
